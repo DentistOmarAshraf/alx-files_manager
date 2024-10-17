@@ -9,10 +9,13 @@ class DBClient {
   constructor() {
     this.host = process.env.DB_HOST || 'localhost';
     this.port = process.env.DB_PORT || '27017';
-    this.database = process.env.DB_DATABASE || 'files_manager';
+    this.databaseEnv = process.env.DB_DATABASE || 'files_manager';
     this.client = new MongoClient(`mongodb://${this.host}:${this.port}`);
     this.isConnected = true;
-    this.connect();
+    (async () => {
+      await this.connect();
+      this.database = this.client.db(this.databaseEnv);
+    })();
   }
 
   /**
@@ -29,8 +32,7 @@ class DBClient {
    */
   async nbUsers() {
     try {
-      const database = this.client.db(this.database);
-      const collection = database.collection('users');
+      const collection = this.database.collection('users');
       return await collection.countDocuments();
     } catch (err) {
       return (err);
@@ -43,8 +45,7 @@ class DBClient {
    */
   async nbFiles() {
     try {
-      const database = this.client.db(this.database);
-      const collection = database.collection('files');
+      const collection = this.database.collection('files');
       return await collection.countDocuments();
     } catch (err) {
       return (err);
