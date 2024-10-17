@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { MongoClient } from 'mongodb';
+import crypto from 'crypto';
 
 class DBClient {
   /**
@@ -34,6 +35,34 @@ class DBClient {
     try {
       const collection = this.database.collection('users');
       return await collection.countDocuments();
+    } catch (err) {
+      return (err);
+    }
+  }
+
+  /**
+  * addUser - add new user
+  * @param {string} email
+  * @param {string} password
+  * @returns
+  */
+  async addUser(email, password) {
+    if (!email || email.length === 0) { throw new Error('Missing email'); }
+    if (!password || password.length === 0) { throw new Error('Missing password'); }
+    try {
+      const collection = this.database.collection('users');
+      const checkEmail = await collection.find({ email }).toArray();
+      if (checkEmail.length > 0) { throw new Error('Already exist'); }
+      const data = {
+        email,
+        password: crypto.createHash('sha1').update(password).digest('hex'),
+      };
+      const result = await collection.insertOne(data);
+      const toReturn = {
+        id: result.ops[0]._id,
+        email: result.ops[0].email,
+      };
+      return (toReturn);
     } catch (err) {
       return (err);
     }
