@@ -9,7 +9,7 @@ const app = express();
 app.use('/', appView);
 
 app.listen(port, () => {
-  console.log(`Server Listen to ${port}`);
+  console.log(`Server running on port ${port}`);
 });
 
 export default app;
