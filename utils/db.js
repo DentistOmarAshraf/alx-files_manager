@@ -64,7 +64,7 @@ class DBClient {
       };
       return (toReturn);
     } catch (err) {
-      return (err);
+      return { error: err.message };
     }
   }
 
