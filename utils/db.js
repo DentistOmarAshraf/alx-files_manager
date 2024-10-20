@@ -2,6 +2,8 @@
 
 import { MongoClient, ObjectId } from 'mongodb';
 import crypto from 'crypto';
+import fs from 'fs';
+import { v4 as uuidv4 } from 'uuid';
 
 class DBClient {
   /**
@@ -11,7 +13,7 @@ class DBClient {
     this.host = process.env.DB_HOST || 'localhost';
     this.port = process.env.DB_PORT || '27017';
     this.databaseEnv = process.env.DB_DATABASE || 'files_manager';
-    this.client = new MongoClient(`mongodb://${this.host}:${this.port}`);
+    this.client = new MongoClient(`mongodb://${this.host}:${this.port}`, { useUnifiedTopology: true });
     this.isConnected = true;
     (async () => {
       await this.connect();
@@ -115,6 +117,65 @@ class DBClient {
     } catch (err) {
       return (err);
     }
+  }
+
+  async addFile(name, type, data, parentId = 0, isPublic = false, userId) {
+    const acceptedType = ['file', 'folder', 'image'];
+    const collection = this.database.collection('files');
+    const folderPath = process.env.FOLDER_PATH || '/tmp/files_manager';
+    const fileName = uuidv4();
+    const localPath = `${folderPath}/${fileName}`;
+    if (!name) {
+      throw new Error('Missing Name');
+    }
+    if (!type || !acceptedType.includes(type)) {
+      throw new Error('Missing type');
+    }
+    if (!data && type !== 'folder') {
+      throw new Error('Missing Data');
+    }
+    if (parentId) {
+      const parent = await this.getParent(parentId);
+      if (!parent.length) {
+        throw new Error('Parent not found');
+      }
+      if (parent.type !== 'folder') {
+        throw new Error('Parent is not a folder');
+      }
+    }
+    if (data) {
+      fs.mkdirSync(folderPath, { recursive: true });
+      fs.writeFileSync(localPath, Buffer.from(data, 'base64'));
+    }
+    try {
+      const doc = {
+        userId,
+        name,
+        type,
+        parentId: parentId ? new ObjectId(parentId) : 0,
+        isPublic,
+        localPath,
+      };
+      const response = await collection.insertOne(doc);
+      return {
+        id: response.ops[0]._id,
+        userId: response.ops[0].userId,
+        name: response.ops[0].name,
+        type: response.ops[0].type,
+        isPublic: response.ops[0].isPublic,
+        parentId: response.ops[0].parentId.toString(),
+      };
+    } catch (err) {
+      return (err);
+    }
+  }
+
+  async getParent(id) {
+    if (!id) return null;
+    const collection = this.database.collection('files');
+    const data = await collection.find({ parentId: new ObjectId(id) }).toArray();
+    if (!data.length) { throw new Error('Parent not found'); }
+    return (data[0]);
   }
 
   /**

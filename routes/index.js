@@ -4,6 +4,7 @@ import express from 'express';
 import AppController from '../controllers/AppController';
 import UsersController from '../controllers/UsersController';
 import AuthController from '../controllers/AuthController';
+import FileController from '../controllers/FilesController';
 
 const appView = (app) => {
   app.get('/status', AppController.getStatus);
@@ -12,6 +13,7 @@ const appView = (app) => {
   app.get('/connect', AuthController.getConnect);
   app.get('/disconnect', AuthController.getDisconnect);
   app.get('/users/me', UsersController.getMe);
+  app.post('/files', express.json(), FileController.postUpload);
 };
 
 export default appView;
