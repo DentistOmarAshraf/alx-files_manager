@@ -16,8 +16,10 @@ class FileController {
 
     redisClient.get(`auth_${token}`)
       .then(async (userToken) => {
+        if (!userToken) {
+          return res.status(401).json({ error: 'Unauthorized' });
+        }
         try {
-          if (!userToken) { throw new Error('Unauthorized'); }
           const user = await dbClient.getUserById(userToken.toString());
           const file = await dbClient.addFile(
             name, type, data, parentId, isPublic, user._id.toString(),
