@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { MongoClient } from 'mongodb';
+import { MongoClient, ObjectId } from 'mongodb';
 import crypto from 'crypto';
 
 class DBClient {
@@ -65,6 +65,42 @@ class DBClient {
       return (toReturn);
     } catch (err) {
       return { error: err.message };
+    }
+  }
+
+  async checkUser(email, password) {
+    if (!email || email.length === 0) { throw new Error('Unauthorized'); }
+    if (!password || password.length === 0) { throw new Error('Unauthorized'); }
+    try {
+      const collection = this.database.collection('users');
+      const checkUser = await collection.find({ email }).toArray();
+      if (checkUser.length === 0) {
+        throw new Error('Unauthorized');
+      }
+      const inputPass = crypto.createHash('sha1').update(password).digest('hex');
+      if (inputPass !== checkUser[0].password) {
+        throw new Error('Unauthorized');
+      }
+      return {
+        id: checkUser[0]._id.toString(),
+        email: checkUser[0].email,
+      };
+    } catch (err) {
+      throw new Error(err.message);
+    }
+  }
+
+  async getUserById(id) {
+    if (!id || !id.length) return null;
+    try {
+      const collection = this.database.collection('users');
+      const users = await collection.find({ _id: new ObjectId(id) }).toArray();
+      if (!users.length) {
+        throw new Error('Unauthorized');
+      }
+      return users[0];
+    } catch (err) {
+      throw new Error(err.message);
     }
   }
 
