@@ -17,18 +17,15 @@ class UsersController {
     }
     redisClient.get(`auth_${token}`)
       .then(async (data) => {
-        if (data) {
-          try {
-            const user = await dbClient.getUserById(data.toString());
-            res.status(200).json({
-              id: user._id.toString(),
-              email: user.email,
-            });
-          } catch (err) {
-            res.status(401).json({ error: err.message });
-          }
-        } else {
-          throw new Error('Unauthorized');
+        try {
+          if (!data) throw new Error('Unauthorized');
+          const user = await dbClient.getUserById(data.toString());
+          res.status(200).json({
+            id: user._id.toString(),
+            email: user.email,
+          });
+        } catch (err) {
+          res.status(401).json({ error: err.message });
         }
       })
       .catch((err) => {
