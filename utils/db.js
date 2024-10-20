@@ -126,13 +126,13 @@ class DBClient {
     const fileName = uuidv4();
     const localPath = `${folderPath}/${fileName}`;
     if (!name) {
-      throw new Error('Missing Name');
+      throw new Error('Missing name');
     }
     if (!type || !acceptedType.includes(type)) {
       throw new Error('Missing type');
     }
     if (!data && type !== 'folder') {
-      throw new Error('Missing Data');
+      throw new Error('Missing data');
     }
     if (parentId) {
       const parent = await this.getParent(parentId);
