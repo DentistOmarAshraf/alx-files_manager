@@ -146,20 +146,17 @@ class DBClient {
       fs.mkdirSync(folderPath, { recursive: true });
       fs.writeFileSync(localPath, Buffer.from(data, 'base64'));
     }
-    if (type === 'folder') {
-      fs.mkdirSync(`/${name}`);
-    }
     try {
       if (type === 'folder') {
         doc = {
-          userId,
+          userId: new ObjectId(userId),
           name,
           type,
           parentId: parentId ? new ObjectId(parentId) : 0,
         };
       } else {
         doc = {
-          userId,
+          userId: new ObjectId(userId),
           name,
           type,
           parentId: parentId ? new ObjectId(parentId) : 0,
@@ -188,6 +185,17 @@ class DBClient {
     if (!data.length) {
       throw new Error('Parent not found');
     }
+    return (data[0]);
+  }
+
+  async getFileByUserFileId(userId, fileId) {
+    if (!userId || !fileId) return null;
+    const collection = this.database.collection('files');
+    const data = collection.find({
+      _id: new ObjectId(fileId),
+      userId: new ObjectId(userId),
+    }).toArray();
+    if (!data.length) { throw new Error('Not found'); }
     return (data[0]);
   }
 

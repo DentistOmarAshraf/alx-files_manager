@@ -33,6 +33,18 @@ class FileController {
         res.status(400).json({ error: error.message });
       });
   }
+
+  static getShow(req, res) {
+    const { id } = req.params;
+    const userToken = req.header('X-token');
+    redisClient.get(`auth_${userToken}`)
+      .then((userId) => {
+        dbClient.getFileByUserFileId(userId, id)
+          .then((data) => res.status(200).json(data))
+          .catch((err) => res.status(404).json({ error: err.message }));
+      })
+      .catch((err) => res.status(401).json({ error: err.message }));
+  }
 }
 
 export default FileController;

@@ -14,6 +14,7 @@ const appView = (app) => {
   app.get('/disconnect', AuthController.getDisconnect);
   app.get('/users/me', UsersController.getMe);
   app.post('/files', express.json(), FileController.postUpload);
+  app.get('/files/:id', FileController.getShow);
 };
 
 export default appView;
