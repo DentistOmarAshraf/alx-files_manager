@@ -147,7 +147,7 @@ class DBClient {
       fs.writeFileSync(localPath, Buffer.from(data, 'base64'));
     }
     if (type === 'folder') {
-      fs.mkdirSync(name);
+      fs.mkdirSync(`/${name}`);
     }
     try {
       if (type === 'folder') {
