@@ -143,7 +143,11 @@ class DBClient {
       }
     }
     if (data && type !== 'folder') {
+      fs.mkdirSync(folderPath, { recursive: true });
       fs.writeFileSync(localPath, Buffer.from(data, 'base64'));
+    }
+    if (type === 'folder') {
+      fs.mkdirSync(name);
     }
     try {
       if (type === 'folder') {
