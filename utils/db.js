@@ -125,6 +125,8 @@ class DBClient {
     const folderPath = process.env.FOLDER_PATH || '/tmp/files_manager';
     const fileName = uuidv4();
     const localPath = `${folderPath}/${fileName}`;
+    let parent;
+    let doc;
     if (!name) {
       throw new Error('Missing name');
     }
@@ -135,27 +137,32 @@ class DBClient {
       throw new Error('Missing data');
     }
     if (parentId) {
-      const parent = await this.getParent(parentId);
-      if (!parent.length) {
-        throw new Error('Parent not found');
-      }
+      parent = await this.getById(parentId);
       if (parent.type !== 'folder') {
         throw new Error('Parent is not a folder');
       }
     }
-    if (data) {
-      fs.mkdirSync(folderPath, { recursive: true });
+    if (data && type !== 'folder') {
       fs.writeFileSync(localPath, Buffer.from(data, 'base64'));
     }
     try {
-      const doc = {
-        userId,
-        name,
-        type,
-        parentId: parentId ? new ObjectId(parentId) : 0,
-        isPublic,
-        localPath,
-      };
+      if (type === 'folder') {
+        doc = {
+          userId,
+          name,
+          type,
+          parentId: parentId ? new ObjectId(parentId) : 0,
+        };
+      } else {
+        doc = {
+          userId,
+          name,
+          type,
+          parentId: parentId ? new ObjectId(parentId) : 0,
+          isPublic,
+          localPath,
+        };
+      }
       const response = await collection.insertOne(doc);
       return {
         id: response.ops[0]._id,
@@ -170,11 +177,13 @@ class DBClient {
     }
   }
 
-  async getParent(id) {
+  async getById(id) {
     if (!id) return null;
     const collection = this.database.collection('files');
-    const data = await collection.find({ parentId: new ObjectId(id) }).toArray();
-    if (!data.length) { throw new Error('Parent not found'); }
+    const data = await collection.find({ _id: new ObjectId(id) }).toArray();
+    if (!data.length) {
+      throw new Error('Parent not found');
+    }
     return (data[0]);
   }
 
