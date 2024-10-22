@@ -203,7 +203,11 @@ class DBClient {
       { $skip: start },
       { $limit: size },
     ]).toArray();
-    return (data);
+    return (data.map((item) => ({
+      id: item._id,
+      ...item,
+      _id: undefined,
+    })));
   }
 
   async getFileByUserFileId(userId, fileId) {
