@@ -188,10 +188,28 @@ class DBClient {
     return (data[0]);
   }
 
+  async getFileByUserId(userId, parentId = 0, page = 0, size = 1) {
+    if (!userId) return null;
+    const collection = this.database.collection('files');
+    const start = page * size;
+    let match;
+    if (parentId) {
+      match = { userId: new ObjectId(userId), parentId: new ObjectId(parentId) };
+    } else if (!parentId) {
+      match = { userId: new ObjectId(userId) };
+    }
+    const data = await collection.aggregate([
+      { $match: match },
+      { $skip: start },
+      { $limit: size },
+    ]).toArray();
+    return (data);
+  }
+
   async getFileByUserFileId(userId, fileId) {
     if (!userId || !fileId) return null;
     const collection = this.database.collection('files');
-    const data = collection.find({
+    const data = await collection.find({
       _id: new ObjectId(fileId),
       userId: new ObjectId(userId),
     }).toArray();

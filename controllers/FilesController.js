@@ -26,11 +26,11 @@ class FileController {
           );
           return res.status(201).json(file);
         } catch (err) {
-          throw new Error(err.message);
+          return res.status(400).json({ error: err.message });
         }
       })
       .catch((error) => {
-        res.status(400).json({ error: error.message });
+        res.status(401).json({ error: error.message });
       });
   }
 
@@ -39,7 +39,21 @@ class FileController {
     const userToken = req.header('X-token');
     redisClient.get(`auth_${userToken}`)
       .then((userId) => {
-        dbClient.getFileByUserFileId(userId, id)
+        if (!userId) { throw new Error('Unauthorized'); }
+        dbClient.getFileByUserFileId(userId.toString(), id)
+          .then((data) => res.status(200).json(data))
+          .catch((err) => res.status(404).json({ error: err.message }));
+      })
+      .catch((err) => res.status(401).json({ error: err.message }));
+  }
+
+  static getIndex(req, res) {
+    const { parentId, page } = req.query;
+    const userToken = req.header('X-token');
+    redisClient.get(`auth_${userToken}`)
+      .then((userId) => {
+        if (!userId) { throw new Error('Unauthorized'); }
+        dbClient.getFileByUserId(userId, parentId, page, 20)
           .then((data) => res.status(200).json(data))
           .catch((err) => res.status(404).json({ error: err.message }));
       })
