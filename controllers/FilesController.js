@@ -73,7 +73,7 @@ class FileController {
       .catch((err) => res.status(401).json({ error: err.message }));
   }
 
-  static putUnPublish(req, res) {
+  static putUnpublish(req, res) {
     const { id } = req.params;
     const userToken = req.header('X-token');
     redisClient.get(`auth_${userToken}`)

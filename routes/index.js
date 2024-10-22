@@ -17,7 +17,7 @@ const appView = (app) => {
   app.get('/files', FileController.getIndex);
   app.get('/files/:id', FileController.getShow);
   app.put('/files/:id/publish', FileController.putPublish);
-  app.put('/files/:id/unpublish', FileController.putUnPublish);
+  app.put('/files/:id/unpublish', FileController.putUnpublish);
 };
 
 export default appView;
