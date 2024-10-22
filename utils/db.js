@@ -221,10 +221,10 @@ class DBClient {
     return (data[0]);
   }
 
-  async updatePublicity(fileId, publicity) {
+  async updatePublicity(fileId, userId, publicity) {
     const collection = this.database.collection('files');
     const check = await collection.updateMany(
-      { _id: new ObjectId(fileId) },
+      { _id: new ObjectId(fileId), userId: new ObjectId(userId) },
       { $set: { isPublic: publicity } },
     );
     if (!check.matchedCount) { throw new Error('Not Found'); }

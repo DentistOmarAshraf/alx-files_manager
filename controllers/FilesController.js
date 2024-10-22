@@ -66,7 +66,7 @@ class FileController {
     redisClient.get(`auth_${userToken}`)
       .then((userId) => {
         if (!userId) { throw new Error('Unauthorized'); }
-        dbClient.updatePublicity(id, true)
+        dbClient.updatePublicity(id, userId, true)
           .then((file) => res.status(200).json(file))
           .catch((err) => res.status(404).json({ error: err.message }));
       })
@@ -79,7 +79,7 @@ class FileController {
     redisClient.get(`auth_${userToken}`)
       .then((userId) => {
         if (!userId) { throw new Error('Unauthorized'); }
-        dbClient.updatePublicity(id, false)
+        dbClient.updatePublicity(id, userId, false)
           .then((file) => res.status(200).json(file))
           .catch((err) => res.status(404).json({ error: err.message }));
       })
