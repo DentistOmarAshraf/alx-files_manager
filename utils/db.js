@@ -227,7 +227,7 @@ class DBClient {
       { _id: new ObjectId(fileId), userId: new ObjectId(userId) },
       { $set: { isPublic: publicity } },
     );
-    if (!check.matchedCount) { throw new Error('Not Found'); }
+    if (!check.matchedCount) { throw new Error('Not found'); }
     const file = await this.getById(fileId);
     const toReturn = {
       id: file._id,
