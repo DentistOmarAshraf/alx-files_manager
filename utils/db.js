@@ -221,6 +221,22 @@ class DBClient {
     return (data[0]);
   }
 
+  async updatePublicity(fileId, publicity) {
+    const collection = this.database.collection('files');
+    const check = await collection.updateMany(
+      { _id: new ObjectId(fileId) },
+      { $set: { isPublic: publicity } },
+    );
+    if (!check.matchedCount) { throw new Error('Not Found'); }
+    const file = await this.getById(fileId);
+    const toReturn = {
+      id: file._id,
+      ...file,
+      _id: undefined,
+    };
+    return (toReturn);
+  }
+
   /**
    * async connection to mongodb
    */
