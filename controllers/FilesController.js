@@ -102,6 +102,9 @@ class FileController {
             if (fileObj.type === 'folder') {
               return res.status(400).json({ error: 'A folder doesn\'t have content' });
             }
+            if (!fs.existsSync(fileObj.localPath)) {
+              throw new Error('Not found');
+            }
             let isEmpty = true;
             const stream = fs.createReadStream(fileObj.localPath);
             stream.on('data', () => { isEmpty = false; });
