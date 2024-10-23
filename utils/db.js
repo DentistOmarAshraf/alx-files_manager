@@ -137,9 +137,17 @@ class DBClient {
       throw new Error('Missing data');
     }
     if (parentId) {
-      parent = await this.getById(parentId);
-      if (parent.type !== 'folder') {
-        throw new Error('Parent is not a folder');
+      try {
+        parent = await this.getFileById(parentId);
+        if (parent.type !== 'folder') {
+          throw new Error('Parent is not a folder');
+        }
+      } catch (err) {
+        if (err.message === 'Parent is not a folder') {
+          throw new Error(err.message);
+        } else {
+          throw new Error('Parent not found');
+        }
       }
     }
     if (data && type !== 'folder') {
@@ -178,12 +186,12 @@ class DBClient {
     }
   }
 
-  async getById(id) {
+  async getFileById(id) {
     if (!id) return null;
     const collection = this.database.collection('files');
     const data = await collection.find({ _id: new ObjectId(id) }).toArray();
     if (!data.length) {
-      throw new Error('Parent not found');
+      throw new Error('Not found');
     }
     return (data[0]);
   }
@@ -228,7 +236,7 @@ class DBClient {
       { $set: { isPublic: publicity } },
     );
     if (!check.matchedCount) { throw new Error('Not found'); }
-    const file = await this.getById(fileId);
+    const file = await this.getFileById(fileId);
     const toReturn = {
       id: file._id,
       ...file,

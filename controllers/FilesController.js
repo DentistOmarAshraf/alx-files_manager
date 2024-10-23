@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+import fs from 'fs';
+import mime from 'mime-types';
 import dbClient from '../utils/db';
 import redisClient from '../utils/redis';
 
@@ -81,6 +83,34 @@ class FileController {
         if (!userId) { throw new Error('Unauthorized'); }
         dbClient.updatePublicity(id, userId, false)
           .then((file) => res.status(200).json(file))
+          .catch((err) => res.status(404).json({ error: err.message }));
+      })
+      .catch((err) => res.status(401).json({ error: err.message }));
+  }
+
+  static getFile(req, res) {
+    const userToken = req.header('X-token');
+    const { id } = req.params;
+    redisClient.get(`auth_${userToken}`)
+      .then((userId) => {
+        dbClient.getFileById(id)
+          // eslint-disable-next-line consistent-return
+          .then((fileObj) => {
+            if (!fileObj.isPublic && fileObj.userId.toString() !== userId) {
+              throw new Error('Not found');
+            }
+            if (fileObj.type === 'folder') {
+              return res.status(400).json({ error: 'A folder doesn\'t have content' });
+            }
+            let isEmpty = true;
+            const stream = fs.createReadStream(fileObj.localPath);
+            stream.on('data', () => { isEmpty = false; });
+            stream.on('end', () => {
+              if (isEmpty) { res.status(404).json({ error: 'Not found' }); }
+            });
+            res.status(200).setHeader('Content-Type', mime.lookup(fileObj.name));
+            stream.pipe(res);
+          })
           .catch((err) => res.status(404).json({ error: err.message }));
       })
       .catch((err) => res.status(401).json({ error: err.message }));
